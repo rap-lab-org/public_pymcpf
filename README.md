@@ -30,10 +30,10 @@ SOFTWARE.
 
 ### About Solution Optimality
 
-CBSS is theoretically guaranteed to find optimal or bounded sub-optimal solution joint path, when the underlying TSP solver is guaranteed to solve TSP to optimality.
-The current implementation of CBSS depends on LKH, which is a popular heuristic algorithm that is not guaranteed to find an optimal solution to TSP. Therefore, the resulting CBSS implementation is not guaranteed to always return an optimal solution.
-However, LKH has been shown to return an optimal solution for numerous TSP instances in practice, this implementation of CBSS should also be able to provide optimal solution for many MCPF instances.
-If an optimal solution to MCPF must be guaranteed anyway, one can consider leveraging the [Concorde](https://www.math.uwaterloo.ca/tsp/concorde.html) TSP solver to replace LKH.
+CBSS is theoretically guaranteed to find an optimal or bounded sub-optimal solution joint path, when the underlying TSP solver is guaranteed to solve TSPs to optimality.
+The current implementation of CBSS depends on LKH, which is a popular heuristic algorithm that is not guaranteed to find an optimal solution to TSP. Therefore, the resulting CBSS implementation is not guaranteed to return an optimal solution.
+However, LKH has been shown to return an optimal solution for numerous TSP instances in practice, this implementation of CBSS should also be able to provide optimal solutions for many MCPF instances.
+If the optimality of the solution must be guaranteed, one can consider leveraging the [Concorde](https://www.math.uwaterloo.ca/tsp/concorde.html) TSP solver (or other TSP solvers that can guarantee solution optimality) to replace LKH.
 
 ### References
 
