@@ -1,2 +1,3 @@
-# public_pymcpf
+# Multi-Agent Combinatorial Path Finding
+
 Multi-Agent Combinatorial Path Finding (MCPF)
