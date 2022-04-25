@@ -6,7 +6,7 @@ This proejct is about Multi-Agent Combinatorial Path Finding (MCPF). The goal is
 <img src="https://github.com/wonderren/wonderren.github.io/blob/master/images/fig_cbss_random.gif" alt="" hspace="15" style=" border: #FFFFFF 2px none;">
 </p>
 
-(Fig 1: A conflict-free joint path to a MCPF problem instance. Triangles are intermediate targets while stars are destinations. For the assignment constraints: each agent has a pre-assigned destination and one pre-assigned target, while all remaining targets are fully anonymous.)
+(Fig 1: A conflict-free joint path to a MCPF problem instance. Triangles are intermediate targets while stars are destinations. For the assignment constraints: each agent has a pre-assigned destination and one pre-assigned target (indicated by the color), while all remaining targets are fully anonymous (blue triangles).)
 
 The code is distributed for academic and non-commercial use.
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
