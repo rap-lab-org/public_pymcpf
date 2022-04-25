@@ -2,6 +2,10 @@
 
 This proejct is about Multi-Agent Combinatorial Path Finding (MCPF). The goal is to compute collision-free paths for multiple agents from their starts to destinations while visiting a large number of intermediate target locations along the paths. Intuitively, MCPF is a combination of mTSP (multiple traveling salesman problem) and MAPF (multi-agent path finding). MCPF also involves assignment constraints, which specify the subsets of agents that are eligible to visit each target/destination. This repo provides a python implementation of the Conflict-Based Steiner Search (CBSS) algorithm which solves MCPF. More technical details can be found in the paper (to be added).
 
+<img src="https://github.com/wonderren/wonderren.github.io/blob/master/images/fig_cbss_random.gif" alt="" align="middle" hspace="15" style=" border: #FFFFFF 2px none;">
+
+(Fig 1: A conflict-free joint path to a MCPF problem instance. Triangles are intermediate targets while stars are destinations. For the assignment constraints: each agent has a pre-assigned destination and one pre-assigned target, while all remaining targets are fully anonymous.)
+
 The code is distributed for academic and non-commercial use.
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
