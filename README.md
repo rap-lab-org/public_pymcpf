@@ -1,6 +1,6 @@
 # Multi-Agent Combinatorial Path Finding
 
-This proejct is about Multi-Agent Combinatorial Path Finding (MCPF). The goal is to compute collision-free paths for multiple agents from their starts to destinations while visiting a large number of intermediate target locations along the paths. Intuitively, MCPF is a combination of mTSP (multiple traveling salesman problem) and MAPF (multi-agent path finding). MCPF also involves assignment constraints, which specify the subsets of agents that are eligible to visit each target/destination. This repo provides a python implementation of the Conflict-Based Steiner Search (CBSS) algorithm which solves MCPF. More technical details can be found in the paper (to be added).
+This proejct is about Multi-Agent Combinatorial Path Finding (MCPF). The goal is to compute collision-free paths for multiple agents from their starts to destinations while visiting a large number of intermediate target locations along the paths. Intuitively, MCPF is a combination of mTSP (multiple traveling salesman problem) and MAPF (multi-agent path finding). MCPF also involves assignment constraints, which specify the subsets of agents that are eligible to visit each target/destination. This repo provides a python implementation of the Conflict-Based Steiner Search (CBSS) algorithm which solves MCPF. More technical details can be found in the [paper](http://www.roboticsproceedings.org/rss18/p058.pdf), [video](https://youtu.be/xwLoCiJ2vJY) or [contact](https://wonderren.github.io/).
 
 <p align="center">
 <img src="https://github.com/wonderren/wonderren.github.io/blob/master/images/fig_cbss_random.gif" alt="" hspace="15" style=" border: #FFFFFF 2px none;">
@@ -35,6 +35,9 @@ The current implementation of CBSS depends on LKH, which is a popular heuristic 
 However, LKH has been shown to return an optimal solution for numerous TSP instances in practice, this implementation of CBSS should also be able to provide optimal solutions for many MCPF instances.
 If the optimality of the solution must be guaranteed, one can consider leveraging the [Concorde](https://www.math.uwaterloo.ca/tsp/concorde.html) TSP solver (or other TSP solvers that can guarantee solution optimality) to replace LKH.
 
-### References
+### Related Papers
 
-TODO,
+[1] Ren, Zhongqiang, Sivakumar Rathinam, Howie Choset. "Conflict-Based Steiner Search for Multi-Agent Combinatorial Path Finding." in Proceedings of Robotics: Science and Systems, New York City, NY, USA, June 2022.
+
+[2] Ren, Zhongqiang, Sivakumar Rathinam, and Howie Choset. "MS*: A new exact algorithm for multi-agent simultaneous multi-goal sequencing and path finding." In 2021 IEEE International Conference on Robotics and Automation (ICRA), pp. 11560-11565. IEEE, 2021.
+
