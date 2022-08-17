@@ -40,7 +40,7 @@ If the optimality of the solution must be guaranteed, one can consider leveragin
 [1] Ren, Zhongqiang, Sivakumar Rathinam, and Howie Choset. "Conflict-Based Steiner Search for Multi-Agent Combinatorial Path Finding." in Proceedings of Robotics: Science and Systems, New York City, NY, USA, June 2022.\
 [[Bibtex](https://wonderren.github.io/files/bibtex_ren22cbss.txt)]
 [[Paper](https://wonderren.github.io/files/ren22_cbss_rss.pdf)]
-[[talk](https://youtu.be/V17vQSZP5Zs?t=2853)]
+[[Talk](https://youtu.be/V17vQSZP5Zs?t=2853)]
 
 [2] Ren, Zhongqiang, Sivakumar Rathinam, and Howie Choset. "MS*: A new exact algorithm for multi-agent simultaneous multi-goal sequencing and path finding." In 2021 IEEE International Conference on Robotics and Automation (ICRA), pp. 11560-11565. IEEE, 2021.\
 [[Bibtex](https://wonderren.github.io/files/bibtex_ren21ms.txt)]
