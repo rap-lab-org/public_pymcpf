@@ -247,7 +247,7 @@ class CbssFramework:
       self.eps_cost = np.inf # no next root!
       return False
     else:
-      if (cval > (1+self.eps)*self.next_seq.cost):
+      if (cval > self.next_seq.cost):
         return True
       else:
         return False
