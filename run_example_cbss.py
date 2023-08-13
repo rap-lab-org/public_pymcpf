@@ -22,8 +22,13 @@ def run_CBSS_MSMP():
   ny = 10
   nx = 10
   grids = np.zeros((ny,nx))
+  # Image coordinate is used. Think about the matrix as a 2d image with the origin at the upper left corner.
+  # Row index is y and column index is x.
+  # For example, in the matrix, grids[3,4] means the vertex with coordinate y=3,x=4 (row index=3, col index=4).
   grids[5,3:7] = 1 # obstacles
 
+  # The following are vertex IDs.
+  # For a vertex v with (x,y) coordinate in a grid of size (Lx,Ly), the ID of v is y*Lx+x.
   starts = [11,22,33,88,99]
   targets = [40,38,27,66,72,81,83]
   dests = [19,28,37,46,69]
