@@ -87,7 +87,7 @@ class SippGridSpace:
           unsafe_tpoint.append(tt+1) ## note that this is tt+1, not tt.
     
     unsafe_tpoint.sort() ## sort from small to large
-    # print("unsafe_tpoint at ", nnid, " is ", unsafe_tpoint)
+    # print("unsafe_tpoint at ", nnid, " is ", unsafe_tpoint, " tlb,tub = ", tlb, tub)
 
     t0 = tlb + 1 ## the earliest possible arrival time at node nnid.
     if t0 > tub:
@@ -113,7 +113,9 @@ class SippGridSpace:
         if t0 > tub: # everytime when t0 changes, need to check
           break
       ## check if inf interval is needed
-      if tub == np.inf:
+      # if tub == np.inf:
+      #   out.append( (t0, np.inf) )
+      if t0 <= tub:
         out.append( (t0, np.inf) )
     else:
       out.append( (t0, np.inf) )
