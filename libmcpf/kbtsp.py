@@ -193,7 +193,8 @@ class KBestMTSP:
     """
     for ek in rtsp.setO:
       if ek in rtsp.setI:
-        print("[INFO] kbtsp._FeaCheck1, filtered ! ", ek, rtsp.node_id)
+        if DEBUG_KBESTTSP:
+          print("[INFO] kbtsp._FeaCheck1, filtered ! ", ek, rtsp.node_id)
         return False
     return True
 

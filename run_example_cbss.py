@@ -35,7 +35,6 @@ def run_CBSS_MSMP():
 
   configs = dict()
   configs["problem_str"] = "msmp"
-  configs["mtsp_fea_check"] = 1 # optional, help speed up K-best TSP module within CBSS for some cases.
   configs["tsp_exe"] = "./pytspbridge/tsp_solver/LKH-2.0.9/LKH"
   configs["time_limit"] = 60
   configs["eps"] = 0.0
@@ -74,7 +73,6 @@ def run_CBSS_MCPF():
 
   configs = dict()
   configs["problem_str"] = "msmp"
-  configs["mtsp_fea_check"] = 1 # optional, help speed up K-best TSP module within CBSS for some cases.
   configs["tsp_exe"] = "./pytspbridge/tsp_solver/LKH-2.0.9/LKH"
   configs["time_limit"] = 60
   configs["eps"] = 0.0
