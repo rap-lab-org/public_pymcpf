@@ -272,11 +272,9 @@ class SeqMCPF():
     solve the instance and return the results.
     """
     if ("mtsp_fea_check" in self.configs) and (self.configs["mtsp_fea_check"]==1):
-      if not self.FeaPreCheck1():
-        if DEBUG_SEQ_MCPF > 3:
-          print("[INFO] mtsp FeaPreCheck1 is 0")
-        return 0, [], [], []
-
+      print("[ERROR] not implemented")
+      sys.exit("[ERROR]")
+      
     if_atsp = True
     problem_str = "runtime_files/mcpf"
     if problem_str in self.configs:
@@ -391,35 +389,4 @@ class SeqMCPF():
     # print("AddOe(",index1,index2,")")
     self.cost_mat[index1,index2] = self.infM # directed
     self.setOe.add(tuple([v1,v2,ri]))
-    return 1
-
-  def FeaPreCheck1(self):
-    """
-    Some simple verification about whether the instance
-    (represented by cost_mat) is feasible or not.
-    Note, this is not a complete check.
-          If return false, instance is infeasible.
-          If return true, instance may also be infeasible!
-    """
-
-    # check one-in-a-set related edges
-    startOfIe = set()
-    for ie in self.setIe:
-      idx = self.agentNode2index[(ie[2],ie[0])]
-      startOfIe.add(idx)
-
-    for ie in self.setIe:
-      # print(" loop over ie = ", ie)
-      if self.IsGoal(ie[1]):
-        v1 = ie[0]
-        v2 = ie[1]
-        ri = ie[2]
-        rk = self._PrevAgent(ri,v2)
-        agent_set = self._GetEligibleAgents(v2)
-        for rj in agent_set:
-          if (rj == rk): # this is the only case where Ie is OK to happen.
-            continue
-          idx = self.agentNode2index[(rj,v2)]
-          if idx in startOfIe:
-            return 0 # infeasible!
     return 1
