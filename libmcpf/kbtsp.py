@@ -127,6 +127,15 @@ class KBestMTSP:
     verify whether the solution satisfies the requirement imposed by set I and O.
     """
     tempI = copy.deepcopy(setI)
+    seq_counts = {key: len(value) for key, value in seqs_dict.items()}
+    seq_num = 0
+    for key in seq_counts:
+      # Add the value corresponding to the key to the total sum
+      seq_num += seq_counts[key]
+    if seq_num != total_num: 
+      if DEBUG_KBESTTSP:
+        print("[INFO] kbtsp._VerifySol sequence not complete")
+      return False
     for ri in seqs_dict:
       seq = seqs_dict[ri]
       for idx in range(1,len(seq)):
