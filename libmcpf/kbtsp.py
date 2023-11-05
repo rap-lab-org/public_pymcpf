@@ -56,6 +56,7 @@ class KBestMTSP:
     self.kbest_node = list() # the k-best nodes containing solutions.
     self.n_tsp_call = 0
     self.n_tsp_time = 0
+    self.num_vertices = -1 # to be set in ComputeNextBest, will be used in a check.
     return
 
   def _Init(self):
@@ -132,7 +133,7 @@ class KBestMTSP:
     for key in seq_counts:
       # Add the value corresponding to the key to the total sum
       seq_num += seq_counts[key]
-    if seq_num != total_num: 
+    if seq_num != self.num_vertices: 
       if DEBUG_KBESTTSP:
         print("[INFO] kbtsp._VerifySol sequence not complete")
       return False
@@ -207,10 +208,11 @@ class KBestMTSP:
         return False
     return True
 
-  def ComputeNextBest(self, tlimit):
+  def ComputeNextBest(self, tlimit, num_vertices):
     """
     compute the (self.k_count+1)-th best solution.
     """
+    self.num_vertices = num_vertices
     self.tstart = time.perf_counter()
     if len(self.kbest_node) == 0:
       self._Init()

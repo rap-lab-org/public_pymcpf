@@ -184,6 +184,7 @@ class CbssFramework:
     self.starts = starts
     self.goals = goals
     self.dests = dests
+    self.total_num_nodes = len(starts) + len(dests) + len(goals)
     self.num_robots = len(starts)
     self.eps = configs["eps"]
     self.configs = configs
@@ -232,7 +233,7 @@ class CbssFramework:
     if cval > self.eps_cost:
       if not self.next_seq: # next_seq not computed yet, compute next seq
         tlimit = self.time_limit - (time.perf_counter() - self.tstart)
-        flag = self.kbtsp.ComputeNextBest(tlimit)
+        flag = self.kbtsp.ComputeNextBest(tlimit, self.total_num_nodes)
         if not flag: # no joint sequence any more.
           self.next_seq = None
         else:
@@ -278,7 +279,7 @@ class CbssFramework:
     if not self.next_seq:
       if (nid == 1): # init
         tlimit = self.time_limit - (time.perf_counter() - self.tstart)
-        flag = self.kbtsp.ComputeNextBest(tlimit)
+        flag = self.kbtsp.ComputeNextBest(tlimit, self.total_num_nodes)
         if not flag:
           print("[ERROR] CBSS: No feasible joint sequence or time out at init!")
           sys.exit("[ERROR]")
