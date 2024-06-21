@@ -33,7 +33,7 @@ class SippState:
     self.g = gval # g-value
     self.t = t # arrival time step
     self.tb = tb # ending time step, mark the ending time of an interval
-    self.occupylist  = occupylist #dl_wxm occupy location id
+    self.occupylist  = occupylist #occupy location id
     self.carttag = carttag # equal to the number of the executed tasks
   
   def __str__(self):
