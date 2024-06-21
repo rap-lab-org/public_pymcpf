@@ -24,7 +24,7 @@ def RunCbssMSMP(grids, starts, goals, dests, configs):
   heu_weight and prune_delta are not in use. @2021-05-26
   """
   ccbs_planner = CbssMSMP(grids, starts, goals, dests, configs)
-  path_set, search_res = ccbs_planner.Search()
+  path_set, search_res = ccbs_planner.Search_ml()
   res_dict = dict()
   res_dict["path_set"] = path_set
   res_dict["round"] = search_res[0] # = num of high level nodes closed.
