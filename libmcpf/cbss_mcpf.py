@@ -26,7 +26,7 @@ def RunCbssMCPF(grids, starts, targets, dests, ac_dict, configs):
   heu_weight and prune_delta are not in use. @2021-05-26
   """
   ccbs_planner = CbssMCPF(grids, starts, targets, dests, ac_dict, configs)
-  path_set, search_res = ccbs_planner.Search()
+  path_set, search_res = ccbs_planner.Search_ml()
   # print(path_set)
   # print(res_dict)
   res_dict = dict()
