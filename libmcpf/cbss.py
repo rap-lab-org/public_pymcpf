@@ -6,7 +6,7 @@ Oeffentlich fuer: RSS22
 """
 
 import kbtsp as kb
-import cbss_lowlevel as sipp
+import cbss_lowlevel as sipp_ml
 import common as cm
 import copy
 import time
@@ -62,17 +62,19 @@ class CbsSol:
   def __str__(self):
     return str(self.paths)
 
-  def AddPath(self, i, lv, lt):
+  def AddPath(self, i, lv, lt,lo=[]):
     """
     lv is a list of loc id
     lt is a list of time
     """
     nlv = lv
     nlt = lt
+    nlo = lo
     # add a final infinity interval
     nlv.append(lv[-1])
     nlt.append(np.inf)
-    self.paths[i] = [nlv,nlt]
+    nlo.append(lo[-1])
+    self.paths[i] = [nlv, nlt,nlo]
     return 
 
   def DelPath(self, i):
@@ -103,6 +105,39 @@ class CbsSol:
           continue
         if ivb == jvb: # vertex conflict at ivb (=jvb)
           return [CbsConstraint(i, ivb, ivb, t_lb+1, t_lb+1, j, 1), CbsConstraint(j, jvb, jvb, t_lb+1, t_lb+1, i, 1)] # t_ub might be inf?
+          # use min(itb,jtb) to avoid infinity
+        if (ivb == jva) and (iva == jvb): # swap location
+          return [CbsConstraint(i, iva, ivb, t_lb, t_lb+1, j, 2), CbsConstraint(j, jva, jvb, t_lb, t_lb+1, i, 2)]
+      ix = ix + 1
+    return []
+
+  def CheckConflict_ml(self, i,j):
+    """
+    return the first constraint found along path i and j.
+    If no conflict, return empty list.
+    """
+    ix = 0
+    while ix < len(self.paths[i][1])-1:
+      for jx in range(len(self.paths[j][1])-1):
+        jtb = self.paths[j][1][jx+1]
+        jta = self.paths[j][1][jx]
+        itb = self.paths[i][1][ix+1]
+        ita = self.paths[i][1][ix]
+        iva = self.paths[i][0][ix]
+        ivb = self.paths[i][0][ix+1]
+        jva = self.paths[j][0][jx]
+        jvb = self.paths[j][0][jx+1]
+        ioa = self.paths[i][2][ix]
+        iob = self.paths[i][2][ix + 1]
+        joa = self.paths[j][2][jx]
+        job = self.paths[j][2][jx + 1]
+        overlaps, t_lb, t_ub = cm.ItvOverlap(ita,itb,jta,jtb)
+        if not overlaps:
+          continue
+        #occupylistoverlapstag = 0
+        common_elements = [value for value in iob if value in job]
+        if len(common_elements) != 0: # vertex conflict at ivb (=jvb)
+          return [CbsConstraint(i, common_elements[0], common_elements[0], t_lb+1, t_lb+1, j, 1), CbsConstraint(j, common_elements[0], common_elements[0], t_lb+1, t_lb+1, i, 1)] # t_ub might be inf?
           # use min(itb,jtb) to avoid infinity
         if (ivb == jva) and (iva == jvb): # swap location
           return [CbsConstraint(i, iva, ivb, t_lb, t_lb+1, j, 2), CbsConstraint(j, jva, jvb, t_lb, t_lb+1, i, 2)]
@@ -140,7 +175,7 @@ class CbssNode:
     return
 
   def __str__(self):
-    str1 = "{id:"+str(self.id)+",c:"+str(self.cost)+",par:"+str(self.parent)
+    str1 = "{id:"+str(self.id)+",cost:"+str(self.cost)+",parent:"+str(self.parent)
     return str1+",cstr:"+str(self.cstr)+",sol:"+str(self.sol)+"}"
 
   def CheckConflict(self):
@@ -156,6 +191,27 @@ class CbssNode:
           continue
         # check for collision
         res = self.sol.CheckConflict(k1,k2)
+        if len(res) > 0:
+          # self.cstr = res # update member
+          return res
+      # end for k2
+      done_set.add(k1)
+    # end for k1
+    return [] # no conflict
+
+  def CheckConflict_ml(self):
+    """
+    check for conflicts along paths of all pairs of robots.
+    record the first one conflict.
+    Note that one conflict should be splited to 2 constraints.
+    """
+    done_set = set()
+    for k1 in self.sol.paths:
+      for k2 in self.sol.paths:
+        if k2 in done_set or k2 == k1:
+          continue
+        # check for collision
+        res = self.sol.CheckConflict_ml(k1,k2)
         if len(res) > 0:
           # self.cstr = res # update member
           return res
@@ -303,6 +359,110 @@ class CbssFramework:
     self._UpdateEpsCost(c)
     return True
 
+
+  def _GenNewRoot_multi_ml(self):
+    """
+    called at the beginning of the search.
+    generate first High level node.
+    compute individual optimal path for each robot.
+    """
+
+    ### Generate the first HL node, a root node ###
+    nid = self.node_id_gen
+    self.nodes[nid] = self._GenCbssNode(nid)
+    self.node_id_gen = self.node_id_gen + 1
+    self.root_set.add(nid)
+    self.nodes[nid].root_id = nid
+
+    ### Init sequencing related ###
+    if not self.next_seq:
+      if (nid == 1): # init
+        tlimit = self.time_limit - (time.perf_counter() - self.tstart)
+        flag = self.kbtsp.ComputeNextBest(tlimit, self.total_num_nodes)
+        if not flag:
+          print("[ERROR] CBSS: No feasible joint sequence or time out at init!")
+          sys.exit("[ERROR]")
+        self.root_seq_dict[nid] = self.kbtsp.GetKthBestSol() # assign seq data to root node.
+      else:
+        return False # no new root to be generated.
+    else: # during search
+      self.root_seq_dict[nid] = self.next_seq
+      self.next_seq = None # next_seq has been used, make it empty.
+
+    ### plan path based on goal sequence for all agents ###
+    for ri in range(self.num_robots): # loop over agents, plan their paths
+      lv, lt,lo, stats = self.Lsearch_ml(nid, ri)
+      if len(lv) == 0: # fail to init, time out or sth.
+        return False
+      self.nodes[nid].sol.AddPath(ri,lv,lt,lo)
+
+    ### update cost and insert into OPEN ###
+    c = self.nodes[nid].ComputeCost() # update node cost and return cost value
+    self.open_list.add(c,nid)
+    self._UpdateEpsCost(c)
+    return True
+
+  def Lsearch_ml(self, nid, ri):
+    """
+    input a high level node, ri is optional.
+    """
+    if DEBUG_CBSS:
+      print("Lsearch, nid:",nid)
+    nd = self.nodes[nid]
+    tlimit = self.time_limit - (time.perf_counter() - self.tstart)
+
+    # plan from start to assigned goals and to dest as specified in goal sequence
+    gseq = self.root_seq_dict[self.nodes[nid].root_id].sol[ri]
+    ss = gseq[0]
+    kth = 1
+    t0 = 0
+    all_lv = [] # all vertex agent ri occupyed
+    all_lv.append(self.starts[ri])
+    all_lt = []
+    all_lt.append(0)
+    all_lo = []
+    all_lo.append([self.starts[ri]])
+    success = True
+    ignore_goal_cstr = False # ask robot can stay destination forever
+    nd = self.nodes[nid]
+    if ri < 0:  # to support init search.
+      ri = nd.cstr.i
+    tlimit = self.time_limit - (time.perf_counter() - self.tstart)
+    ncs, ecs = self.BacktrackCstrs(nid, ri)
+
+    res_path, sipp_stats = sipp_ml.RunSipp_ml(self.grids, gseq,t0, ignore_goal_cstr, 3.0, 0.0, tlimit, ncs, ecs) # note the t0 here!
+
+    if DEBUG_CBSS:
+      if len(res_path) != 0:
+        invalidtag = 0
+        for iv in range(len(res_path[2])):
+          for incs in ncs:
+            if incs[0] in res_path[2][iv] and incs[1] == res_path[1][iv]:
+              print(" no satisfy constraints",incs)
+              invalidtag = 1
+          if invalidtag==1:
+            break
+        if invalidtag==0:
+          print("satisfy constraints")
+        else:
+          print(" no satisfy constraints")
+          return [], [], False
+
+    print("res_path = ", res_path, " sipp_stats = ", sipp_stats)
+
+    if len(res_path) == 0:  # failed
+      success = False
+    else:  # good
+      self.UpdateStats(sipp_stats)
+      #all_lv, all_lt = self.ConcatePath(all_lv, all_lt, res_path[0], res_path[1])
+      all_lv, all_lt, all_lo = self.ConcatePath_ml(all_lv, all_lt, all_lo, res_path[0], res_path[1],res_path[2])
+
+    if not success:
+      return [], [], [], success
+    else:
+      return all_lv, all_lt, all_lo, success
+
+
   def Lsearch(self, nid, ri):
     """
     input a high level node, ri is optional.
@@ -317,13 +477,13 @@ class CbssFramework:
     ss = gseq[0]
     kth = 1
     t0 = 0
-    all_lv = []
+    all_lv = [] # all vertex agent ri occupyed
     all_lv.append(self.starts[ri])
     all_lt = []
     all_lt.append(0)
     success = True
     for kth in range(1, len(gseq)):
-      # TODO, this can be optimized, 
+      # TODO, this can be optimized,
       # no need to plan path between every pair of waypoints each time! Impl detail.
       gg = gseq[kth]
       ignore_goal_cstr = True
@@ -377,8 +537,20 @@ class CbssFramework:
       sys.exit("[ERROR] ConcatePath, time step mismatch !")
     return all_lv + lv[1:], all_lt + lt[1:]
 
+  def ConcatePath_ml(self, all_lv, all_lt,all_lo, lv, lt,lo):
+    """
+    remove the first node in lv,lt and then concate with all_xx.
+    """
+    if (len(all_lt) > 0) and (lt[0] != all_lt[-1]):
+      print("[ERROR] ConcatePath lv = ", lv, " lt = ", lt, " all_lv = ", all_lv, " all_lt = ", all_lt)
+      sys.exit("[ERROR] ConcatePath, time step mismatch !")
+    return all_lv + lv[1:], all_lt + lt[1:], all_lo + lo[1:]
+
   def FirstConflict(self, nd):
     return nd.CheckConflict()
+
+  def FirstConflict_ml(self, nd):
+    return nd.CheckConflict_ml()
 
   def UpdateStats(self, stats):
     """
@@ -393,6 +565,7 @@ class CbssFramework:
     """
     """
     path_set = dict()
+    #print("num_robots",self.num_robots)
     for i in range(self.num_robots):
       lx = list()
       ly = list()
@@ -403,13 +576,17 @@ class CbssFramework:
         ly.append(y)
         lx.append(x)
       lt = self.nodes[nid].sol.GetPath(i)[1]
+      lo = self.nodes[nid].sol.GetPath(i)[2]
+
+
       path_set[i] = [lx,ly,lt]
+    #print(path_set)
     return path_set
 
   def _HandleRootGen(self, curr_node):
     """
     generate new root if needed
-    """  
+    """
     # print(" popped node ID = ", curr_node.id)
     if self._IfNewRoot(curr_node):
       if DEBUG_CBSS:
@@ -424,6 +601,26 @@ class CbssFramework:
     # end of if/while _IfNewRoot
     # print("### CBSS, expand high-level node ID = ", curr_node.id)
     return curr_node
+
+  def _HandleRootGen_ml(self, curr_node):
+    """
+    generate new root if needed
+    """
+    # print(" popped node ID = ", curr_node.id)
+    if self._IfNewRoot(curr_node):
+      if DEBUG_CBSS:
+        print(" ### CBSS _GenNewRoot...")
+      self._GenNewRoot_multi_ml()
+      self.open_list.add(curr_node.cost, curr_node.id) # re-insert into OPEN for future expansion.
+      popped = self.open_list.pop() # pop_node = (f-value, high-level-node-id)
+      curr_node = self.nodes[popped[1]]
+    else:
+      # print(" self._IfNewRoot returns false...")
+      place_holder = 1
+    # end of if/while _IfNewRoot
+    # print("### CBSS, expand high-level node ID = ", curr_node.id)
+    return curr_node
+
 
   def Search(self):
     """
@@ -532,4 +729,112 @@ class CbssFramework:
       return self.ReconstructPath(reached_goal_id), output_res
     else:
       return dict(), output_res
-    
+
+
+  def Search_ml(self):
+    """
+    = high level search
+    """
+    print("CBSS search begin!")
+    self.time_limit = self.configs["time_limit"]
+    self.tstart = time.perf_counter()
+
+    good = self._GenNewRoot_multi_ml()
+    if not good:
+      output_res = [int(0), float(-1), int(0), int(0), \
+                    int(self.num_closed_low_level_states), 0, float(time.perf_counter() - self.tstart), \
+                    int(self.kbtsp.GetTotalCalls()), float(self.kbtsp.GetTotalTime()), int(len(self.root_set))]
+      return dict(), output_res
+
+    tnow = time.perf_counter()
+    # print("After init, tnow - self.tstart = ", tnow - self.tstart, " tlimit = ", self.time_limit)
+    if (tnow - self.tstart > self.time_limit):
+      print(" FAIL! timeout! ")
+      search_success = False
+      output_res = [int(0), float(-1), int(0), int(0), \
+                    int(self.num_closed_low_level_states), 0, float(time.perf_counter() - self.tstart), \
+                    int(self.kbtsp.GetTotalCalls()), float(self.kbtsp.GetTotalTime()), int(len(self.root_set))]
+      return dict(), output_res
+
+    search_success = False
+    best_g_value = -1
+    reached_goal_id = -1
+
+    while True:
+      tnow = time.perf_counter()
+      rd = len(self.closed_set)
+      # print("tnow - self.tstart = ", tnow - self.tstart, " tlimit = ", self.time_limit)
+      if (tnow - self.tstart > self.time_limit):
+        print(" FAIL! timeout! ")
+        search_success = False
+        break
+      if (self.open_list.size()) == 0:
+        print(" FAIL! openlist is empty! ")
+        search_success = False
+        break
+
+      popped = self.open_list.pop()  # pop_node = (f-value, high-level-node-id)
+      curr_node = self.nodes[popped[1]]
+      curr_node = self._HandleRootGen_ml(curr_node)  # generate new root if needed
+      tnow = time.perf_counter()
+      # print("tnow - self.tstart = ", tnow - self.tstart, " tlimit = ", self.time_limit)
+
+      if (tnow - self.tstart > self.time_limit):
+        print(" FAIL! timeout! ")
+        search_success = False
+        break
+
+      self.closed_set.add(popped[1])  # only used to count numbers
+
+      if DEBUG_CBSS:
+        print("### CBSS popped node: ", curr_node)
+
+      cstrs = self.FirstConflict_ml(curr_node)
+      #print(len(cstrs))
+      if len(cstrs) == 0:  # no conflict, terminates
+        print("! CBSS succeed !")
+        search_success = True
+        best_g_value = curr_node.cost
+        reached_goal_id = curr_node.id
+        break
+
+      max_child_cost = 0
+      for cstr in cstrs:
+        if DEBUG_CBSS:
+          print("CBSS loop over cstr:", cstr)
+
+        ### generate constraint and new HL node ###
+        new_id = self.node_id_gen
+        self.node_id_gen = self.node_id_gen + 1
+        self.nodes[new_id] = copy.deepcopy(curr_node)
+        self.nodes[new_id].id = new_id
+        self.nodes[new_id].parent = curr_node.id
+        self.nodes[new_id].cstr = cstr
+        self.nodes[new_id].root_id = self.nodes[curr_node.id].root_id  # copy root id.
+        ri = cstr.i
+
+        ### replan paths for the agent, subject to new constraint ###
+        lv, lt, lo,flag = self.Lsearch_ml(new_id, ri)
+        self.num_low_level_calls = self.num_low_level_calls + 1
+        if len(lv) == 0:
+          # this branch fails, robot ri cannot find a consistent path.
+          continue
+        self.nodes[new_id].sol.DelPath(ri)
+        self.nodes[new_id].sol.AddPath(ri, lv, lt,lo)
+        nn_cost = self.nodes[new_id].ComputeCost()
+        if DEBUG_CBSS:
+          print("### CBSS add node ", self.nodes[new_id], " into OPEN,,, nn_cost = ", nn_cost)
+        self.open_list.add(nn_cost, new_id)
+        max_child_cost = np.max([nn_cost, max_child_cost])
+      # end of for cstr
+      # print(">>>>>>>>>>>>>>>>>>>> end of an iteration")
+    # end of while
+
+    output_res = [int(len(self.closed_set)), float(best_g_value), int(0), int(self.open_list.size()), \
+                  int(self.num_closed_low_level_states), int(search_success), float(time.perf_counter() - self.tstart), \
+                  int(self.kbtsp.GetTotalCalls()), float(self.kbtsp.GetTotalTime()), int(len(self.root_set))]
+
+    if search_success:
+      return self.ReconstructPath(reached_goal_id), output_res
+    else:
+      return dict(), output_res

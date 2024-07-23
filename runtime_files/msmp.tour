@@ -1,0 +1,25 @@
+NAME : mtspf.43.tour
+COMMENT : Length = 43
+COMMENT : Found by LKH [Keld Helsgaun] Tue Jul 23 19:20:56 2024
+TYPE : TOUR
+DIMENSION : 17
+TOUR_SECTION
+1
+6
+10
+11
+12
+9
+15
+3
+16
+2
+8
+13
+4
+7
+14
+5
+17
+-1
+EOF

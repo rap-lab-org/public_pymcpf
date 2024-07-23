@@ -1,0 +1,41 @@
+NAME : mtspf.2367.tour
+COMMENT : Length = 2367
+COMMENT : Found by LKH [Keld Helsgaun] Tue Jul 23 19:20:56 2024
+TYPE : TOUR
+DIMENSION : 33
+TOUR_SECTION
+1
+29
+2
+7
+6
+8
+9
+25
+26
+27
+28
+24
+30
+5
+18
+14
+15
+16
+17
+33
+4
+11
+10
+12
+13
+32
+3
+21
+22
+23
+19
+20
+31
+-1
+EOF
