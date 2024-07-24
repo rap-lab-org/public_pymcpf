@@ -50,7 +50,7 @@ class SeqMSMP(object):
     self.spMat = cm.getTargetGraph(self.grid,self.Vo,self.Vt,self.Vd) # target graph, fully connected.
     self.original_spMat = copy.deepcopy(self.spMat)
     self.bigM = np.max(self.spMat)*(self.N + self.M) # totally N+M edges in a mTSP solution, not 2N+M.
-    print("bigM set to ", self.bigM)
+    # print("bigM set to ", self.bigM)
     return
 
   def ChangeCost(self, v1, v2, d, ri):

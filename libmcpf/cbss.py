@@ -448,7 +448,7 @@ class CbssFramework:
           print(" no satisfy constraints")
           return [], [], False
 
-    print("res_path = ", res_path, " sipp_stats = ", sipp_stats)
+    # print("res_path = ", res_path, " sipp_stats = ", sipp_stats)
 
     if len(res_path) == 0:  # failed
       success = False
